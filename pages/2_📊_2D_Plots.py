@@ -6,9 +6,10 @@ import seaborn as sns
 import sys
 sys.path.append('..')
 from utils import (
-    get_plot_customization_sidebar, apply_plot_formatting, 
-    download_plot, check_data_loaded, get_numeric_columns, 
-    get_categorical_columns, get_all_columns, MATPLOTLIB_COLORMAPS
+    get_plot_customization_sidebar, apply_plot_formatting,
+    download_plot, check_data_loaded, get_numeric_columns,
+    get_categorical_columns, get_all_columns, MATPLOTLIB_COLORMAPS,
+    add_data_filters
 )
 
 st.title("📊 2D Visualizations")
@@ -18,6 +19,8 @@ if not check_data_loaded():
     st.stop()
 
 df = st.session_state.data
+
+df = add_data_filters(df)
 
 numeric_cols = get_numeric_columns(df)
 categorical_cols = get_categorical_columns(df)
