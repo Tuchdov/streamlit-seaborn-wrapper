@@ -104,3 +104,78 @@ def get_categorical_columns(df):
 
 def get_all_columns(df):
     return df.columns.tolist()
+
+def add_data_filters(df):
+    """
+    Add interactive data filtering UI and return filtered dataframe.
+    Allows filtering by categorical and numeric columns.
+    """
+    import streamlit as st
+    import numpy as np
+
+    with st.expander("🔍 Filter Data", expanded=False):
+        st.markdown("Filter the dataset before creating visualizations")
+
+        numeric_cols = get_numeric_columns(df)
+        categorical_cols = get_categorical_columns(df)
+
+        filtered_df = df.copy()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("**Categorical Filters**")
+            if len(categorical_cols) > 0:
+                for cat_col in categorical_cols:
+                    unique_values = df[cat_col].dropna().unique().tolist()
+                    if len(unique_values) > 0 and len(unique_values) <= 50:
+                        selected_values = st.multiselect(
+                            f"{cat_col}",
+                            options=unique_values,
+                            default=unique_values,
+                            key=f"filter_cat_{cat_col}"
+                        )
+                        if len(selected_values) > 0:
+                            filtered_df = filtered_df[filtered_df[cat_col].isin(selected_values)]
+                    elif len(unique_values) > 50:
+                        st.info(f"{cat_col}: Too many unique values ({len(unique_values)}) to filter")
+            else:
+                st.info("No categorical columns available")
+
+        with col2:
+            st.markdown("**Numeric Filters**")
+            if len(numeric_cols) > 0:
+                for num_col in numeric_cols:
+                    col_min = float(df[num_col].min())
+                    col_max = float(df[num_col].max())
+
+                    if col_min != col_max:
+                        selected_range = st.slider(
+                            f"{num_col}",
+                            min_value=col_min,
+                            max_value=col_max,
+                            value=(col_min, col_max),
+                            key=f"filter_num_{num_col}"
+                        )
+                        filtered_df = filtered_df[
+                            (filtered_df[num_col] >= selected_range[0]) &
+                            (filtered_df[num_col] <= selected_range[1])
+                        ]
+            else:
+                st.info("No numeric columns available")
+
+        st.markdown("---")
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            st.metric("Original Rows", len(df))
+        with col_b:
+            st.metric("Filtered Rows", len(filtered_df))
+        with col_c:
+            percentage = (len(filtered_df) / len(df) * 100) if len(df) > 0 else 0
+            st.metric("Percentage", f"{percentage:.1f}%")
+
+        if len(filtered_df) == 0:
+            st.warning("⚠️ No data matches the current filters. Please adjust your filter settings.")
+            return df
+
+    return filtered_df
