@@ -6,9 +6,10 @@ import seaborn as sns
 import sys
 sys.path.append('..')
 from utils import (
-    get_plot_customization_sidebar, apply_plot_formatting, 
-    download_plot, check_data_loaded, get_numeric_columns, 
-    get_categorical_columns, get_all_columns, MATPLOTLIB_COLORMAPS
+    get_plot_customization_sidebar, apply_plot_formatting,
+    download_plot, check_data_loaded, get_numeric_columns,
+    get_categorical_columns, get_all_columns, MATPLOTLIB_COLORMAPS,
+    get_display_data
 )
 
 st.title("✨ Specialty Visualizations")
@@ -17,7 +18,7 @@ st.markdown("Advanced and specialized plot types for comprehensive data analysis
 if not check_data_loaded():
     st.stop()
 
-df = st.session_state.data
+df = get_display_data()
 
 numeric_cols = get_numeric_columns(df)
 categorical_cols = get_categorical_columns(df)

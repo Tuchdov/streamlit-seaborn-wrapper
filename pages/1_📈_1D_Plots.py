@@ -6,9 +6,9 @@ import seaborn as sns
 import sys
 sys.path.append('..')
 from utils import (
-    get_plot_customization_sidebar, apply_plot_formatting, 
-    download_plot, check_data_loaded, get_numeric_columns, 
-    get_categorical_columns, get_all_columns
+    get_plot_customization_sidebar, apply_plot_formatting,
+    download_plot, check_data_loaded, get_numeric_columns,
+    get_categorical_columns, get_all_columns, get_display_data
 )
 
 st.title("📈 1D Visualizations")
@@ -17,7 +17,7 @@ st.markdown("Create one-dimensional plots to visualize distributions and single 
 if not check_data_loaded():
     st.stop()
 
-df = st.session_state.data
+df = get_display_data()
 
 numeric_cols = get_numeric_columns(df)
 categorical_cols = get_categorical_columns(df)

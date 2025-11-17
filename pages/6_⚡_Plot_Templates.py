@@ -6,8 +6,8 @@ import seaborn as sns
 import sys
 sys.path.append('..')
 from utils import (
-    check_data_loaded, get_numeric_columns, 
-    get_categorical_columns, download_plot
+    check_data_loaded, get_numeric_columns,
+    get_categorical_columns, download_plot, get_display_data
 )
 
 st.title("⚡ Plot Templates & Presets")
@@ -17,7 +17,7 @@ if not check_data_loaded():
     st.warning("⚠️ No data loaded. Please upload data or use sample data from the Home page to use templates.")
     st.stop()
 
-df = st.session_state.data
+df = get_display_data()
 numeric_cols = get_numeric_columns(df)
 categorical_cols = get_categorical_columns(df)
 

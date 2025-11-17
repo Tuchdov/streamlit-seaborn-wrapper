@@ -95,6 +95,13 @@ def check_data_loaded():
         return False
     return True
 
+def get_display_data():
+    """Get the appropriate data to display based on filter settings"""
+    if 'apply_filters' in st.session_state and st.session_state.apply_filters:
+        if 'filtered_data' in st.session_state:
+            return st.session_state.filtered_data
+    return st.session_state.data
+
 def get_numeric_columns(df):
     import numpy as np
     return df.select_dtypes(include=[np.number]).columns.tolist()

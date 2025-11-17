@@ -64,32 +64,115 @@ st.markdown("---")
 
 if st.session_state.data is not None:
     df = st.session_state.data
-    
+
+    # Initialize filtered_data if not exists
+    if 'filtered_data' not in st.session_state:
+        st.session_state.filtered_data = df
+    if 'apply_filters' not in st.session_state:
+        st.session_state.apply_filters = False
+
+    # Data Filtering Section
+    with st.expander("🔍 Filter Data", expanded=False):
+        st.markdown("**Filter your data by numerical ranges and categorical values**")
+
+        apply_filters = st.checkbox("Apply Filters", value=st.session_state.apply_filters, key="filter_checkbox")
+        st.session_state.apply_filters = apply_filters
+
+        if apply_filters:
+            filtered_df = df.copy()
+
+            # Get column types
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+
+            if len(numeric_cols) > 0:
+                st.markdown("##### 📊 Numerical Filters (Range)")
+                num_filter_cols = st.columns(2)
+
+                for idx, col in enumerate(numeric_cols):
+                    with num_filter_cols[idx % 2]:
+                        col_min = float(df[col].min())
+                        col_max = float(df[col].max())
+
+                        # Handle case where min == max
+                        if col_min == col_max:
+                            st.info(f"{col}: All values are {col_min}")
+                        else:
+                            selected_range = st.slider(
+                                f"{col}",
+                                min_value=col_min,
+                                max_value=col_max,
+                                value=(col_min, col_max),
+                                key=f"num_filter_{col}"
+                            )
+                            # Apply filter
+                            filtered_df = filtered_df[
+                                (filtered_df[col] >= selected_range[0]) &
+                                (filtered_df[col] <= selected_range[1])
+                            ]
+
+            if len(categorical_cols) > 0:
+                st.markdown("##### 🏷️ Categorical Filters (Select Values)")
+                cat_filter_cols = st.columns(2)
+
+                for idx, col in enumerate(categorical_cols):
+                    with cat_filter_cols[idx % 2]:
+                        unique_values = df[col].dropna().unique().tolist()
+                        selected_values = st.multiselect(
+                            f"{col}",
+                            options=unique_values,
+                            default=unique_values,
+                            key=f"cat_filter_{col}"
+                        )
+                        # Apply filter
+                        if len(selected_values) > 0:
+                            filtered_df = filtered_df[filtered_df[col].isin(selected_values)]
+                        else:
+                            # If no values selected, show nothing
+                            filtered_df = filtered_df[filtered_df[col].isin(selected_values)]
+
+            st.session_state.filtered_data = filtered_df
+
+            # Show filter results
+            st.markdown("---")
+            filter_col1, filter_col2 = st.columns(2)
+            with filter_col1:
+                st.metric("Original Rows", df.shape[0])
+            with filter_col2:
+                st.metric("Filtered Rows", filtered_df.shape[0],
+                         delta=int(filtered_df.shape[0] - df.shape[0]))
+        else:
+            # Reset to original data if filters are disabled
+            st.session_state.filtered_data = df
+
+    # Use filtered or original data based on filter setting
+    display_df = st.session_state.filtered_data if st.session_state.apply_filters else df
+
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Rows", df.shape[0])
+        st.metric("Rows", display_df.shape[0])
     with col2:
-        st.metric("Columns", df.shape[1])
+        st.metric("Columns", display_df.shape[1])
     with col3:
         st.metric("Data Source", st.session_state.filename)
-    
+
     with st.expander("📋 View Data Preview", expanded=False):
-        st.dataframe(df.head(100), use_container_width=True)
-    
+        st.dataframe(display_df.head(100), use_container_width=True)
+
     with st.expander("📊 Data Summary", expanded=False):
         st.write("**Column Information:**")
         col_info = pd.DataFrame({
-            'Column': df.columns,
-            'Type': df.dtypes.values,
-            'Non-Null Count': df.count().values,
-            'Null Count': df.isnull().sum().values
+            'Column': display_df.columns,
+            'Type': display_df.dtypes.values,
+            'Non-Null Count': display_df.count().values,
+            'Null Count': display_df.isnull().sum().values
         })
         st.dataframe(col_info, use_container_width=True)
-        
+
         st.write("**Numeric Columns Statistics:**")
-        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        numeric_cols = display_df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 0:
-            st.dataframe(df[numeric_cols].describe(), use_container_width=True)
+            st.dataframe(display_df[numeric_cols].describe(), use_container_width=True)
     
     st.markdown("---")
     st.markdown("### 🎨 Choose a visualization type from the sidebar")

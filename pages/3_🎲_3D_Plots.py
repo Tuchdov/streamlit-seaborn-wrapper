@@ -9,8 +9,9 @@ import plotly.express as px
 import sys
 sys.path.append('..')
 from utils import (
-    get_plot_customization_sidebar, check_data_loaded, 
-    get_numeric_columns, get_categorical_columns, MATPLOTLIB_COLORMAPS
+    get_plot_customization_sidebar, check_data_loaded,
+    get_numeric_columns, get_categorical_columns, MATPLOTLIB_COLORMAPS,
+    get_display_data
 )
 
 st.title("🎲 3D Visualizations")
@@ -19,7 +20,7 @@ st.markdown("Create three-dimensional plots for advanced data exploration")
 if not check_data_loaded():
     st.stop()
 
-df = st.session_state.data
+df = get_display_data()
 
 numeric_cols = get_numeric_columns(df)
 categorical_cols = get_categorical_columns(df)
